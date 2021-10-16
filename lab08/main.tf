@@ -50,6 +50,11 @@ resource "google_compute_instance" "vm_instance" {
     access_config {
     }
   }
+
+  service_account {
+    email  = google_service_account.lab08-service-account.email
+    scopes = ["cloud-platform"]
+  }
 }
 
 resource "google_compute_firewall" "default-firewall" {
@@ -57,9 +62,20 @@ resource "google_compute_firewall" "default-firewall" {
   network = google_compute_network.vpc_network.name
   allow {
     protocol = "tcp"
-    ports = ["22", "80", "3000", "5000"]
+    ports = ["22", "80"]
   }
   source_ranges = ["0.0.0.0/0"]
+}
+
+resource "google_service_account" "lab08-service-account" {
+  account_id   = "cis-91-terraform-326406"
+  display_name = "lab08-service-account"
+  description = "Service account for lab 08"
+}
+
+resource "google_project_iam_member" "project_member" {
+  role = "roles/compute.viewer"
+  member = "serviceAccount:${google_service_account.lab08-service-account.email}"
 }
 
 output "external-ip" {
