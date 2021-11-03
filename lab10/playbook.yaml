@@ -1,0 +1,16 @@
+---
+- hosts: all
+  name: Formating and mounting zonal persistent disk
+  become: yes
+  tasks:
+    - name: Create ext4 filesystem on sdb
+      community.general.filesystem:
+        fstype: ext4
+        dev: /dev/sdb
+
+    - name: Mount zonal persistent disk
+      ansible.posix.mount:
+        path: /data
+        src: /dev/sdb
+        fstype: ext4
+        state: mounted

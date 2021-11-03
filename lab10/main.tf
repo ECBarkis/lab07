@@ -50,6 +50,27 @@ resource "google_compute_instance" "vm_instance" {
     access_config {
     }
   }
+
+  lifecycle {
+    ignore_changes = [attached_disk]
+  }
+}
+
+resource "google_compute_disk" "zonal_persis_disk" {
+  name  = "data-disk"
+  type  = "pd-ssd"
+  image = "ubuntu-os-cloud/ubuntu-2004-lts"
+  labels = {
+    environment = "dev"
+  }
+  description = "Zonal Persistent Disk"
+  size = 100
+}
+
+resource "google_compute_attached_disk" "attaching_zonal_disk" {
+  disk     = google_compute_disk.zonal_persis_disk.id
+  instance = google_compute_instance.vm_instance.id
+  device_name = google_compute_disk.zonal_persis_disk.name
 }
 
 resource "google_compute_firewall" "default-firewall" {
