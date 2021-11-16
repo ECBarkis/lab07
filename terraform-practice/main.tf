@@ -35,17 +35,6 @@ resource "google_compute_network" "vpc_network" {
   name = "cis91-network"
 }
 
-resource "google_service_account" "lab10-service-account" {
-  account_id   = "lab10-service-account"
-  display_name = "lab10-service-account"
-  description = "Service account for lab 10"
-}
-
-resource "google_project_iam_member" "project_member" {
-  role = "roles/compute.viewer"
-  member = "serviceAccount:${google_service_account.lab10-service-account.email}"
-}
-
 resource "google_compute_instance" "vm_instance" {
   name         = "cis91"
   machine_type = "e2-micro"
@@ -56,40 +45,11 @@ resource "google_compute_instance" "vm_instance" {
     }
   }
 
-  attached_disk {
-    source = "data-disk"
-    device_name = "data-disk"
-  }
-
-#   scratch_disk {
-#     interface = "SCSI"
-#   }
-
   network_interface {
     network = google_compute_network.vpc_network.name
     access_config {
     }
   }
-
-  service_account {
-    email  = google_service_account.lab10-service-account.email
-    scopes = ["cloud-platform"]
-  }
-
-  lifecycle {
-    ignore_changes = [attached_disk]
-  }
-}
-
-resource "google_compute_disk" "zonal_persis_disk" {
-  name  = "data-disk"
-  type  = "pd-ssd"
-  image = "ubuntu-os-cloud/ubuntu-2004-lts"
-  labels = {
-    environment = "dev"
-  }
-  description = "Zonal Persistent Disk"
-  size = 100
 }
 
 resource "google_compute_firewall" "default-firewall" {
