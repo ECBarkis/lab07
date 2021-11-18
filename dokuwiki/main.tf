@@ -4,7 +4,7 @@ variable "credentials_file" {
 }
 
 variable "project" {
-  default = "cis-91-fa-21"
+  default = "cis-91-terraform-326406"
 }
 
 variable "region" {
@@ -32,11 +32,28 @@ provider "google" {
 }
 
 resource "google_compute_network" "vpc_network" {
-  name = "cis91-network"
+  name = "dokuwiki-network"
+}
+
+resource "google_service_account" "dokuwiki-service-account" {
+  account_id   = "dokuwiki-service-account"
+  display_name = "dokuwiki-service-account"
+  description = "Service account for dokuwiki"
+}
+
+resource "google_project_iam_member" "project_member" {
+  role = "roles/storage.objectAdmin"
+  member = "serviceAccount:${google_service_account.dokuwiki-service-account.email}"
+}
+
+resource "google_storage_bucket" "dokuwiki-backup-bucket" {
+  name          = "dokuwiki-backup-bucket"
+  location      = "US"
+  force_destroy = true
 }
 
 resource "google_compute_instance" "vm_instance" {
-  name         = "cis91"
+  name         = "dokuwiki-project"
   machine_type = "e2-micro"
 
   boot_disk {
@@ -45,11 +62,33 @@ resource "google_compute_instance" "vm_instance" {
     }
   }
 
+  attached_disk {
+    source = google_compute_disk.dokuwiki_disk.name
+    device_name = "data-disk"
+  }
+
   network_interface {
     network = google_compute_network.vpc_network.name
     access_config {
     }
   }
+
+  service_account {
+    email  = google_service_account.dokuwiki-service-account.email
+    scopes = ["cloud-platform"]
+  }
+
+  lifecycle {
+    ignore_changes = [attached_disk]
+  }
+
+}
+
+resource "google_compute_disk" "dokuwiki_disk" {
+  name  = "dokuwiki-data-disk"
+  type  = "pd-ssd"
+  description = "Dokuwiki Disk"
+  size = 100
 }
 
 resource "google_compute_firewall" "default-firewall" {

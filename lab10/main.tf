@@ -61,10 +61,6 @@ resource "google_compute_instance" "vm_instance" {
     device_name = "data-disk"
   }
 
-#   scratch_disk {
-#     interface = "SCSI"
-#   }
-
   network_interface {
     network = google_compute_network.vpc_network.name
     access_config {
@@ -84,10 +80,6 @@ resource "google_compute_instance" "vm_instance" {
 resource "google_compute_disk" "zonal_persis_disk" {
   name  = "data-disk"
   type  = "pd-ssd"
-  image = "ubuntu-os-cloud/ubuntu-2004-lts"
-  labels = {
-    environment = "dev"
-  }
   description = "Zonal Persistent Disk"
   size = 100
 }

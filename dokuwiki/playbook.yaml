@@ -1,0 +1,57 @@
+---
+- hosts: all
+  name: VM setup
+  become: yes
+  tasks:
+    - name: Install packages for dokuwiki to function 
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+        name:
+          - python3-pip
+          - python3-venv
+          - apache2
+          - php
+          - php-xml
+    - name: Create a directory to mount disk
+      ansible.builtin.file:
+        path: /var/www
+        state: directory
+        mode: '0755'
+    - name: Formate disk to be mounted
+      filesystem:
+        force: yes
+        fstype: ext4
+        dev: /dev/disk/by-id/google-data-disk
+    - name: Mount disk to directory
+      mount:
+        src: /dev/disk/by-id/google-data-disk
+        path: /var/www
+        fstype: ext4
+        state: mounted
+    - name: Setup hourly backup to gcp bucket
+      ansible.builtin.copy:
+        src: ~/cis-91/dokuwiki/backup.sh
+        dest: /etc/cron.hourly/backup.sh
+        owner: root
+        group: root
+        mode: '0755'
+    - name: Create the directory for dokuwiki
+      ansible.builtin.file:
+        path: /var/www/html
+        state: directory
+        mode: '0777'
+    - name: Download dokuwiki and unarchive in /tmp
+      ansible.builtin.unarchive:
+        src: https://download.dokuwiki.org/src/dokuwiki/dokuwiki-stable.tgz
+        dest: /tmp
+        mode: '0777'
+        remote_src: yes
+    - name: Move dokuwiki to /var/www/html
+      ansible.builtin.copy:
+        src: /tmp/dokuwiki-2020-07-29/
+        dest: /var/www/html
+        owner: www-data
+        group: www-data
+        mode: '0777'
+        remote_src: yes
