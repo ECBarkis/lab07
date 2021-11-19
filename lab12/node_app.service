@@ -1,0 +1,14 @@
+[Unit]
+Description=CIS-91 Lab 12
+Documentation=https://example.com
+After=network.target
+
+[Service]
+Environment=NODE_PORT=3000
+Type=simple
+User=nodeuser
+ExecStart=/usr/bin/node /home/nodeuser/cis-91/hello-nodejs/app.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

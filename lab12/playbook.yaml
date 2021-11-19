@@ -1,0 +1,31 @@
+---
+- hosts: all
+  name: Add cis-92 packages
+  become: yes
+  tasks:
+    - name: Install packages 
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+        name:
+          - python3-pip 
+          - python3-venv
+          - nodejs
+    - name: Add nodeuser
+      ansible.builtin.user:
+        name: nodeuser
+        system: yes
+    - name: Download node app from gitHub
+      ansible.builtin.git:
+        repo: 'https://github.com/ECBarkis/lab07.git'
+        dest: /home/nodeuser/cis-91
+    - name: Create node app service definition
+      ansible.builtin.copy:
+        src: ~/cis-91/lab12/node_app.service
+        dest: /lib/systemd/system/node_app.service
+        owner: nodeuser
+        mode: '0644'
+    - name: Start node app
+      ansible.builtin.systemd:
+        state: started
+        name: node_app
